@@ -106,8 +106,8 @@ class KeyboardEmulation(*([KeyboardEmulationBase] if have_output_plugin else [])
                 keyup += k
 
         # Send keyup and then keydown to avoid clashes
-        _dotool("keyup " + keyup.join("+"))
-        _dotool("keydown " + keydown.join("+"))
+        self._dotool("keyup " + keyup.join("+"))
+        self._dotool("keydown " + keydown.join("+"))
 
     def send_backspaces(self, n):
         self._dotool_string("\b" * n)

@@ -39,7 +39,7 @@ class Main:
             self._old_keyboard_emulation = self._engine._keyboard_emulation
             assert isinstance(self._old_keyboard_emulation, OldKeyboardEmulation)
             self._engine._keyboard_emulation = KeyboardEmulation()
-        _dotoold = subprocess.Popen(["dotoold"], env=DOTOOL_ENV)
+        self._dotoold = subprocess.Popen(["dotoold"], env=DOTOOL_ENV)
 
 
     def stop(self):
@@ -49,7 +49,7 @@ class Main:
             assert self._old_keyboard_emulation is not None
             self._engine._keyboard_emulation = self._old_keyboard_emulation
             self._old_keyboard_emulation = None
-        _dotoold.send_signal("SIGTERM") # kys
+        self._dotoold.send_signal("SIGTERM") # kys
 
 mods = {
     'alt_l': 'alt', 'alt_r': 'altgr',
@@ -81,7 +81,10 @@ class KeyboardEmulation(*([KeyboardEmulationBase] if have_output_plugin else [])
             self._ms = ms
 
     def _dotool(self, inp):
-        subprocess.run(["dotoolc"], env=DOTOOL_ENV, input=inp.encode('utf-8'))
+        with open(DOTOOL_ENV["DOTOOL_PIPE"], 'w') as file:
+            file.write(inp + "\n")
+            file.flush()
+            file.close()
 
     def _dotool_string(self, s):
         self._dotool("type " + s)

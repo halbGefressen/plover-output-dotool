@@ -49,13 +49,13 @@ class Main:
             assert self._old_keyboard_emulation is not None
             self._engine._keyboard_emulation = self._old_keyboard_emulation
             self._old_keyboard_emulation = None
-        self._dotoold.send_signal("SIGTERM") # kys
+        self._dotoold.send_signal(15) # SIGTERM
 
 mods = {
-    'alt_l': 'alt', 'alt_r': 'altgr',
-    'control_l': 'ctrl', 'control_r': 'ctrl',
-    'shift_l': 'shift', 'shift_r': 'shift',
-    'super_l': 'super', 'super_r': 'super',
+    'alt_l': 'k:56', 'alt_r': 'k:100',
+    'control_l': 'k:29', 'control_r': 'k:97',
+    'shift_l': 'k:42', 'shift_r': 'k:54',
+    'super_l': 'k:125', 'super_r': 'k:126',
 }
 
 class KeyboardEmulation(*([KeyboardEmulationBase] if have_output_plugin else [])):
@@ -81,6 +81,7 @@ class KeyboardEmulation(*([KeyboardEmulationBase] if have_output_plugin else [])
             self._ms = ms
 
     def _dotool(self, inp):
+        print(inp)
         with open(DOTOOL_ENV["DOTOOL_PIPE"], 'w') as file:
             file.write(inp + "\n")
             file.flush()
@@ -93,21 +94,18 @@ class KeyboardEmulation(*([KeyboardEmulationBase] if have_output_plugin else [])
         self._dotool_string(s)
 
     def send_key_combination(self, combo_string):
+        print(combo_string)
         key_events = parse_key_combo(combo_string)
+        print(key_events)
 
         # Split key_events into release list and press list
-        keyup = []
-        keydown = []
         for (key, pressed) in key_events:
             k = (mods[key] if key in mods else key)
-            if pressed:
-                keydown += k
-            else:
-                keyup += k
+            arg = "keydown " if pressed else "keyup "
+            # Send keyup and then keydown to avoid clashes
+            self._dotool(arg + k)
 
-        # Send keyup and then keydown to avoid clashes
-        self._dotool("keyup " + keyup.join("+"))
-        self._dotool("keydown " + keydown.join("+"))
+
 
     def send_backspaces(self, n):
         self._dotool_string("\b" * n)
